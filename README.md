@@ -85,6 +85,11 @@ public class MainForm : Form
 Notifications are filtered to the USB device interface class
 (`A5DCBF10-6530-11D2-901F-00C04FB951ED`), so the window is notified about USB devices only.
 
+## Releases
+
+Tagged releases are published on the [releases page](../../releases) with the compiled assembly
+attached. See [docs/RELEASING.md](docs/RELEASING.md) for the release process.
+
 ## License
 
 Released under the [MIT License](LICENSE).

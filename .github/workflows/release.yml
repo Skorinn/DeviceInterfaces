@@ -1,0 +1,129 @@
+name: Release
+
+# Releases are cut manually from master only. The version comes from
+# Properties/AssemblyInfo.cs, which is the single source of truth: bump it,
+# merge to master, then run this workflow.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify preconditions
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      sha: ${{ github.sha }}
+    steps:
+      - name: Reject releases from outside master
+        if: github.ref != 'refs/heads/master'
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          echo "::error::Releases may only be cut from master (this run is on $REF)."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - name: Read version from AssemblyInfo.cs
+        id: version
+        run: |
+          asm=$(grep -oP 'AssemblyVersion\("\K[^"]+' Properties/AssemblyInfo.cs)
+          file=$(grep -oP 'AssemblyFileVersion\("\K[^"]+' Properties/AssemblyInfo.cs)
+
+          if [ "$asm" != "$file" ]; then
+            echo "::error::AssemblyVersion ($asm) and AssemblyFileVersion ($file) disagree."
+            exit 1
+          fi
+
+          if ! [[ "$asm" =~ ^([0-9]+\.[0-9]+\.[0-9]+)\.0$ ]]; then
+            echo "::error::AssemblyVersion must be X.Y.Z.0 (got $asm)."
+            exit 1
+          fi
+          echo "version=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          echo "Releasing version ${BASH_REMATCH[1]} from $(git rev-parse --short HEAD)."
+
+      - name: Reject a version that was already released
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::v$VERSION has already been released. Bump AssemblyInfo.cs first."
+            exit 1
+          fi
+
+  build:
+    name: Build
+    needs: verify
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build Release
+        run: msbuild DeviceInterfaces.sln -t:Rebuild -p:Configuration=Release -v:minimal
+
+      - name: Verify the built assembly carries the expected version
+        shell: pwsh
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          $built = (Get-Item bin\Release\DeviceInterfaces.dll).VersionInfo.FileVersion
+          if ($built -ne "$env:VERSION.0") {
+            Write-Output "::error::Built assembly reports $built, expected $env:VERSION.0."
+            exit 1
+          }
+          Write-Output "Built DeviceInterfaces.dll $built."
+
+      - name: Stage the release package
+        shell: pwsh
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          New-Item -ItemType Directory package | Out-Null
+          Copy-Item bin\Release\DeviceInterfaces.dll, bin\Release\DeviceInterfaces.pdb package
+          Copy-Item LICENSE, README.md package
+          Compress-Archive -Path package\* -DestinationPath "DeviceInterfaces-v$env:VERSION.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-package
+          path: |
+            bin/Release/DeviceInterfaces.dll
+            DeviceInterfaces-v*.zip
+          if-no-files-found: error
+
+  publish:
+    name: Publish release
+    needs: [verify, build]
+    runs-on: ubuntu-latest
+    # APPROVAL GATE: the `release` environment requires review from @Skorinn and
+    # only accepts deployments from master. Nothing is tagged or published until
+    # that approval is given. See docs/RELEASING.md.
+    environment: release
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-package
+
+      - name: Create the tag and GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.verify.outputs.version }}
+          TARGET: ${{ needs.verify.outputs.sha }}
+        run: |
+          gh release create "v$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$TARGET" \
+            --title "v$VERSION" \
+            --generate-notes \
+            "DeviceInterfaces-v$VERSION.zip" \
+            "bin/Release/DeviceInterfaces.dll"

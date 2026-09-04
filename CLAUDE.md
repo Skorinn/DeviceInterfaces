@@ -45,3 +45,13 @@ The registration is hard-coded to `DBT_DEVTYP_DEVICEINTERFACE` (5) filtered on t
 - Members are grouped in `#region` blocks in this order: `Externals`, `Type definitions`, `Methods`, `Data Members` — with data members **last**, not first.
 - Hungarian-style prefixes: `i` for ints, `p` for `IntPtr`/pointers, `m_` for private fields and private constants. Public constants keep the type prefix but drop `m_` (`iDEVICE_CONNECTED`).
 - XML doc comments on every public member; parameters documented as `IN - description`.
+
+## Releasing
+
+`Properties/AssemblyInfo.cs` is the single source of truth for the release version — the release
+workflow reads `AssemblyVersion` from it rather than taking a version input, and fails if
+`AssemblyVersion` and `AssemblyFileVersion` disagree or the version was already released. Bump both
+together as `X.Y.Z.0` when preparing a release.
+
+Releases run only from `master` and pause for approval on the `release` GitHub environment before
+anything is tagged or published. See `docs/RELEASING.md`.
