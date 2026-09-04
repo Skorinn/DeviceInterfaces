@@ -34,8 +34,8 @@ jobs:
       - name: Read version from AssemblyInfo.cs
         id: version
         run: |
-          asm=$(grep -oP 'AssemblyVersion\("\K[^"]+' Properties/AssemblyInfo.cs)
-          file=$(grep -oP 'AssemblyFileVersion\("\K[^"]+' Properties/AssemblyInfo.cs)
+          asm=$(grep -oP '^\[assembly: AssemblyVersion\("\K[^"]+' Properties/AssemblyInfo.cs)
+          file=$(grep -oP '^\[assembly: AssemblyFileVersion\("\K[^"]+' Properties/AssemblyInfo.cs)
 
           if [ "$asm" != "$file" ]; then
             echo "::error::AssemblyVersion ($asm) and AssemblyFileVersion ($file) disagree."
