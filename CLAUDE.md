@@ -41,7 +41,7 @@ The registration is hard-coded to `DBT_DEVTYP_DEVICEINTERFACE` (5) filtered on t
 
 `USBDeviceNotification.cs` is the reference for conventions in this codebase; match it:
 
-- Every file opens with the boxed header comment block: file name, description, `Copyright (C) <year> Mike Pullen. All Rights Reserved. / Confidential and Proprietary`, then a dated `Revision History` line per change.
+- Every file opens with the boxed header comment block: file name, description, `Copyright (C) <year> Mike Pullen` followed by the MIT license pointer line, then a dated `Revision History` line per change. Copy the header from `USBDeviceNotification.cs` verbatim — the project is MIT licensed, so new files must not reintroduce the old "All Rights Reserved / Confidential and Proprietary" wording.
 - Members are grouped in `#region` blocks in this order: `Externals`, `Type definitions`, `Methods`, `Data Members` — with data members **last**, not first.
 - Hungarian-style prefixes: `i` for ints, `p` for `IntPtr`/pointers, `m_` for private fields and private constants. Public constants keep the type prefix but drop `m_` (`iDEVICE_CONNECTED`).
 - XML doc comments on every public member; parameters documented as `IN - description`.

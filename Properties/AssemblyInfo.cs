@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("DeviceInterfaces")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Win32 device interface wrappers for .NET Framework desktop applications")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("DeviceInterfaces")]
-[assembly: AssemblyCopyright("Copyright ©  2023")]
+[assembly: AssemblyCopyright("Copyright © 2023 Mike Pullen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

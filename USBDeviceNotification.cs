@@ -2,14 +2,15 @@
 // File Name:      USBDeviceNotification.cs
 // Description:    Implementation of the USB device notification system
 //
-// Copyright (C) 2023 Mike Pullen. All Rights Reserved.
-// Confidential and Proprietary
+// Copyright (C) 2023 Mike Pullen
+// Licensed under the MIT License. See the LICENSE file in the project root for full license information.
 //
 // Revision History: 
 //====================================================================================================================
 // 2023/12/03 - Mike Pullen - Original implementation.
 // 2026/09/04 - Mike Pullen - Released the notification filter buffer, reported registration failures and hardened
 //                            the unregister path.
+// 2026/09/04 - Mike Pullen - Relicensed under the MIT License.
 //*********************************************************************************************************************
 using System;
 using System.ComponentModel;
