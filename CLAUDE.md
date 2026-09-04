@@ -35,7 +35,7 @@ Output lands in `bin\Debug\` (or `bin\Release\`), and a post-build `xcopy` step 
 
 The registration is hard-coded to `DBT_DEVTYP_DEVICEINTERFACE` (5) filtered on the USB device interface class GUID `A5DCBF10-6530-11D2-901F-00C04FB951ED`. Filtering for a different device class means a new API surface, not a change to this one.
 
-Note: the marshalled `NotificationFilterStr` buffer allocated by `Marshal.AllocHGlobal` in `RegisterUsbDeviceNotification` is never freed. Keep that in mind before "fixing" it — the Win32 call copies the filter during registration, so freeing it after the call returns is safe, but the current code leaks it once per registration.
+`RegisterUsbDeviceNotification` throws `Win32Exception` when registration fails rather than returning `IntPtr.Zero`, so callers registering from a window-handle-created hook should expect that. `UnregisterUsbDeviceNotification` is deliberately quiet: it ignores `IntPtr.Zero` and swallows failures, since it runs on teardown paths.
 
 ## House style
 
